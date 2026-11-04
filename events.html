@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Browse and sign up for Smart Campus events.">
+  <title>Events | Smart Campus</title>
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body data-page="events">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/images/logo.svg" alt="" width="36" height="36">
+        <span>Smart Campus</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">
+        <span class="nav-toggle-bars" aria-hidden="true"></span>
+        <span>Menu</span>
+      </button>
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="enquiry.html">Enquiry</a></li>
+          <li data-auth="student"><a href="dashboard.html">Dashboard</a></li>
+          <li data-auth="admin"><a href="admin.html">Admin</a></li>
+          <li data-auth="guest"><a href="register.html">Register</a></li>
+          <li data-auth="guest"><a class="nav-cta" href="login.html">Login</a></li>
+          <li data-auth="user" hidden><button class="nav-button" type="button" data-action="logout">Logout</button></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <div class="page-header">
+      <div class="container">
+        <h1>Campus events</h1>
+        <p>Search by title or venue, filter by category, and sign up when you're logged in as a student.</p>
+      </div>
+    </div>
+
+    <div class="container">
+      <form id="event-filters" class="toolbar" role="search" aria-label="Filter events">
+        <div class="field">
+          <label for="event-search">Search events</label>
+          <input id="event-search" type="search" placeholder="Title or venue" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="event-category">Category</label>
+          <select id="event-category">
+            <option value="">All categories</option>
+          </select>
+        </div>
+        <button id="event-reset" class="btn btn-outline" type="button">Clear filters</button>
+      </form>
+
+      <p id="event-count" class="muted small" role="status" aria-live="polite"></p>
+
+      <div id="event-list" class="grid grid-3"></div>
+      <div id="event-empty" class="empty-state" hidden>
+        <p>No events match your search. Try a different word or <strong>Clear filters</strong>.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year">2026</span> Smart Campus. Demo project, data is stored in your browser.</p>
+      <ul class="footer-links">
+        <li><a href="events.html">Events</a></li>
+        <li><a href="enquiry.html">Contact us</a></li>
+        <li><a href="login.html?role=admin">Admin login</a></li>
+      </ul>
+    </div>
+  </footer>
+</body>
+</html>

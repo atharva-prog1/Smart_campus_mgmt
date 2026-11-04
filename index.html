@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Smart Campus: register as a student, browse campus events, send enquiries and manage your dashboard.">
+  <title>Home | Smart Campus</title>
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body data-page="home">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/images/logo.svg" alt="" width="36" height="36">
+        <span>Smart Campus</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">
+        <span class="nav-toggle-bars" aria-hidden="true"></span>
+        <span>Menu</span>
+      </button>
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="enquiry.html">Enquiry</a></li>
+          <li data-auth="student"><a href="dashboard.html">Dashboard</a></li>
+          <li data-auth="admin"><a href="admin.html">Admin</a></li>
+          <li data-auth="guest"><a href="register.html">Register</a></li>
+          <li data-auth="guest"><a class="nav-cta" href="login.html">Login</a></li>
+          <li data-auth="user" hidden><button class="nav-button" type="button" data-action="logout">Logout</button></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <section class="hero">
+      <div class="container hero-inner">
+        <div>
+          <p id="home-greeting" class="hero-greeting" hidden></p>
+          <h1>Your campus, all in one place</h1>
+          <p>Register as a student, sign up for campus events, ask the campus office a question and keep track of everything from your dashboard.</p>
+          <div class="btn-row">
+            <a class="btn" href="register.html">Register now</a>
+            <a class="btn btn-outline" href="events.html">Browse events</a>
+          </div>
+        </div>
+        <div class="hero-art">
+          <img src="assets/images/hero.svg" alt="Illustration of campus buildings with students" width="480" height="320">
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <section class="section" aria-labelledby="stats-heading">
+        <h2 id="stats-heading" class="visually-hidden">Campus at a glance</h2>
+        <div class="grid grid-2">
+          <div class="card stat-card">
+            <span id="home-stat-events" class="stat-value">0</span>
+            <span class="stat-label">Upcoming events</span>
+          </div>
+          <div class="card stat-card">
+            <span id="home-stat-students" class="stat-value">0</span>
+            <span class="stat-label">Registered students</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="upcoming-heading">
+        <div class="section-head">
+          <h2 id="upcoming-heading">Upcoming events</h2>
+          <a href="events.html">See all events</a>
+        </div>
+        <div id="upcoming-events" class="grid grid-3"></div>
+        <div id="upcoming-empty" class="empty-state" hidden>
+          <p>There are no upcoming events right now. Check back soon.</p>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="quick-heading">
+        <h2 id="quick-heading">Quick links</h2>
+        <div class="grid grid-4">
+          <div class="card feature-card">
+            <span class="feature-icon" aria-hidden="true">&#9998;</span>
+            <h3><a href="register.html">Register</a></h3>
+            <p class="muted">Create your student account in a minute.</p>
+          </div>
+          <div class="card feature-card">
+            <span class="feature-icon" aria-hidden="true">&#128197;</span>
+            <h3><a href="events.html">Campus events</a></h3>
+            <p class="muted">Find workshops, sports, cultural and academic events.</p>
+          </div>
+          <div class="card feature-card">
+            <span class="feature-icon" aria-hidden="true">&#9993;</span>
+            <h3><a href="enquiry.html">Send an enquiry</a></h3>
+            <p class="muted">Ask about admissions, fees, hostels and more.</p>
+          </div>
+          <div class="card feature-card">
+            <span class="feature-icon" aria-hidden="true">&#128100;</span>
+            <h3><a href="dashboard.html">My dashboard</a></h3>
+            <p class="muted">See your profile, events and enquiry status.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year">2026</span> Smart Campus. Demo project, data is stored in your browser.</p>
+      <ul class="footer-links">
+        <li><a href="events.html">Events</a></li>
+        <li><a href="enquiry.html">Contact us</a></li>
+        <li><a href="login.html?role=admin">Admin login</a></li>
+      </ul>
+    </div>
+  </footer>
+</body>
+</html>

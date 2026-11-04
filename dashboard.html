@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Your Smart Campus student dashboard.">
+  <title>Dashboard | Smart Campus</title>
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body data-page="dashboard" data-protected>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/images/logo.svg" alt="" width="36" height="36">
+        <span>Smart Campus</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">
+        <span class="nav-toggle-bars" aria-hidden="true"></span>
+        <span>Menu</span>
+      </button>
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="enquiry.html">Enquiry</a></li>
+          <li data-auth="student"><a href="dashboard.html">Dashboard</a></li>
+          <li data-auth="admin"><a href="admin.html">Admin</a></li>
+          <li data-auth="guest"><a href="register.html">Register</a></li>
+          <li data-auth="guest"><a class="nav-cta" href="login.html">Login</a></li>
+          <li data-auth="user" hidden><button class="nav-button" type="button" data-action="logout">Logout</button></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <noscript><p class="container notice notice-error">The dashboard needs JavaScript. Please enable it and reload the page.</p></noscript>
+    <div class="protected-content">
+      <div class="page-header">
+        <div class="container">
+          <h1>Welcome, <span id="welcome-name">student</span></h1>
+          <p>Your profile, event sign-ups and enquiries in one place.</p>
+        </div>
+      </div>
+
+      <div class="container">
+        <section class="section" aria-labelledby="summary-heading">
+          <h2 id="summary-heading" class="visually-hidden">Summary</h2>
+          <div class="grid grid-3">
+            <div class="card stat-card">
+              <span id="stat-my-events" class="stat-value">0</span>
+              <span class="stat-label">Events signed up</span>
+            </div>
+            <div class="card stat-card">
+              <span id="stat-my-open" class="stat-value">0</span>
+              <span class="stat-label">Open enquiries</span>
+            </div>
+            <div class="card stat-card">
+              <span id="stat-my-resolved" class="stat-value">0</span>
+              <span class="stat-label">Resolved enquiries</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="dashboard-layout">
+          <section class="card" aria-labelledby="profile-heading">
+            <h2 id="profile-heading">My profile</h2>
+            <dl id="profile-details" class="profile-list"></dl>
+          </section>
+
+          <div>
+            <section class="section" aria-labelledby="my-events-heading">
+              <div class="section-head">
+                <h2 id="my-events-heading" tabindex="-1">My events</h2>
+                <a class="btn btn-small btn-outline" href="events.html">Find more events</a>
+              </div>
+              <ul id="my-events" class="item-list"></ul>
+              <div id="my-events-empty" class="empty-state" hidden>
+                <p>You haven't signed up for any events yet.</p>
+                <p><a href="events.html">Browse campus events</a></p>
+              </div>
+            </section>
+
+            <section class="section" aria-labelledby="my-enquiries-heading">
+              <div class="section-head">
+                <h2 id="my-enquiries-heading">My enquiries</h2>
+                <a class="btn btn-small btn-outline" href="enquiry.html">New enquiry</a>
+              </div>
+              <ul id="my-enquiries" class="item-list"></ul>
+              <div id="my-enquiries-empty" class="empty-state" hidden>
+                <p>You haven't sent any enquiries yet.</p>
+                <p><a href="enquiry.html">Send an enquiry</a></p>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year">2026</span> Smart Campus. Demo project, data is stored in your browser.</p>
+      <ul class="footer-links">
+        <li><a href="events.html">Events</a></li>
+        <li><a href="enquiry.html">Contact us</a></li>
+        <li><a href="login.html?role=admin">Admin login</a></li>
+      </ul>
+    </div>
+  </footer>
+</body>
+</html>

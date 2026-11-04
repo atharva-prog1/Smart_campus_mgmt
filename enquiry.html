@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Send an enquiry to the Smart Campus office.">
+  <title>Enquiry | Smart Campus</title>
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body data-page="enquiry">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/images/logo.svg" alt="" width="36" height="36">
+        <span>Smart Campus</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">
+        <span class="nav-toggle-bars" aria-hidden="true"></span>
+        <span>Menu</span>
+      </button>
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="enquiry.html">Enquiry</a></li>
+          <li data-auth="student"><a href="dashboard.html">Dashboard</a></li>
+          <li data-auth="admin"><a href="admin.html">Admin</a></li>
+          <li data-auth="guest"><a href="register.html">Register</a></li>
+          <li data-auth="guest"><a class="nav-cta" href="login.html">Login</a></li>
+          <li data-auth="user" hidden><button class="nav-button" type="button" data-action="logout">Logout</button></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <div class="page-header">
+      <div class="container">
+        <h1>Send an enquiry</h1>
+        <p>Ask the campus office about admissions, academics, hostels, fees or anything else. Students can follow the status on their dashboard.</p>
+      </div>
+    </div>
+
+    <div class="container narrow">
+      <div id="enquiry-success" class="notice notice-success" tabindex="-1" role="status" hidden>
+        <p><strong>Thank you. Your enquiry was submitted.</strong></p>
+        <p>Reference number: <strong id="enquiry-ref"></strong></p>
+        <p data-auth="student">You can follow its status on <a href="dashboard.html">your dashboard</a>.</p>
+      </div>
+
+      <div class="card">
+        <form id="enquiry-form" class="form" novalidate>
+          <p class="form-summary" role="alert" hidden></p>
+          <p id="enquiry-prefill-note" class="notice small" hidden>Your name and email were filled in from your student account.</p>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="enq-name">Full name <span class="required-mark" aria-hidden="true">*</span></label>
+              <input id="enq-name" name="name" type="text" autocomplete="name" maxlength="60" required aria-describedby="enq-name-error">
+              <span id="enq-name-error" class="field-error" aria-live="polite"></span>
+            </div>
+
+            <div class="field">
+              <label for="enq-email">Email address <span class="required-mark" aria-hidden="true">*</span></label>
+              <input id="enq-email" name="email" type="email" autocomplete="email" maxlength="100" required aria-describedby="enq-email-error">
+              <span id="enq-email-error" class="field-error" aria-live="polite"></span>
+            </div>
+
+            <div class="field">
+              <label for="enq-subject">Subject <span class="required-mark" aria-hidden="true">*</span></label>
+              <input id="enq-subject" name="subject" type="text" maxlength="100" required aria-describedby="enq-subject-error">
+              <span id="enq-subject-error" class="field-error" aria-live="polite"></span>
+            </div>
+
+            <div class="field">
+              <label for="enq-category">Category <span class="required-mark" aria-hidden="true">*</span></label>
+              <select id="enq-category" name="category" required aria-describedby="enq-category-error">
+                <option value="">Select a category</option>
+              </select>
+              <span id="enq-category-error" class="field-error" aria-live="polite"></span>
+            </div>
+
+            <div class="field span-2">
+              <label for="enq-message">Message <span class="required-mark" aria-hidden="true">*</span></label>
+              <textarea id="enq-message" name="message" maxlength="1000" required aria-describedby="enq-message-count enq-message-error"></textarea>
+              <span id="enq-message-count" class="hint">0 / 1000 characters</span>
+              <span id="enq-message-error" class="field-error" aria-live="polite"></span>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn" type="submit">Submit enquiry</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year">2026</span> Smart Campus. Demo project, data is stored in your browser.</p>
+      <ul class="footer-links">
+        <li><a href="events.html">Events</a></li>
+        <li><a href="enquiry.html">Contact us</a></li>
+        <li><a href="login.html?role=admin">Admin login</a></li>
+      </ul>
+    </div>
+  </footer>
+</body>
+</html>

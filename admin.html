@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Smart Campus administration panel.">
+  <title>Admin | Smart Campus</title>
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body data-page="admin" data-protected>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/images/logo.svg" alt="" width="36" height="36">
+        <span>Smart Campus</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">
+        <span class="nav-toggle-bars" aria-hidden="true"></span>
+        <span>Menu</span>
+      </button>
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="enquiry.html">Enquiry</a></li>
+          <li data-auth="student"><a href="dashboard.html">Dashboard</a></li>
+          <li data-auth="admin"><a href="admin.html">Admin</a></li>
+          <li data-auth="guest"><a href="register.html">Register</a></li>
+          <li data-auth="guest"><a class="nav-cta" href="login.html">Login</a></li>
+          <li data-auth="user" hidden><button class="nav-button" type="button" data-action="logout">Logout</button></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <noscript><p class="container notice notice-error">The admin panel needs JavaScript. Please enable it and reload the page.</p></noscript>
+    <div class="protected-content">
+      <div class="page-header">
+        <div class="container">
+          <h1>Administration</h1>
+          <p>Review student registrations and enquiries, and manage campus events.</p>
+        </div>
+      </div>
+
+      <div class="container">
+        <section class="section" aria-labelledby="admin-summary-heading">
+          <h2 id="admin-summary-heading" class="visually-hidden">Summary</h2>
+          <div class="grid grid-4">
+            <div class="card stat-card">
+              <span id="stat-students" class="stat-value">0</span>
+              <span class="stat-label">Registered students</span>
+            </div>
+            <div class="card stat-card">
+              <span id="stat-open" class="stat-value">0</span>
+              <span class="stat-label">Open enquiries</span>
+            </div>
+            <div class="card stat-card">
+              <span id="stat-events" class="stat-value">0</span>
+              <span class="stat-label">Events</span>
+            </div>
+            <div class="card stat-card">
+              <span id="stat-signups" class="stat-value">0</span>
+              <span class="stat-label">Event sign-ups</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="tabs" role="tablist" aria-label="Admin sections">
+          <button id="tab-students" class="tab" type="button" role="tab" aria-selected="true" aria-controls="panel-students">Registrations</button>
+          <button id="tab-enquiries" class="tab" type="button" role="tab" aria-selected="false" aria-controls="panel-enquiries" tabindex="-1">Enquiries</button>
+          <button id="tab-events" class="tab" type="button" role="tab" aria-selected="false" aria-controls="panel-events" tabindex="-1">Events</button>
+        </div>
+
+        <!-- Registrations -->
+        <section id="panel-students" role="tabpanel" aria-labelledby="tab-students" tabindex="0">
+          <form class="toolbar toolbar-2" role="search" aria-label="Search registrations">
+            <div class="field">
+              <label for="students-search">Search registrations</label>
+              <input id="students-search" type="search" placeholder="Name, email, student ID, department or phone" autocomplete="off">
+            </div>
+            <button id="students-export" class="btn btn-outline" type="button">Download CSV</button>
+          </form>
+
+          <div class="table-wrap">
+            <table>
+              <caption class="visually-hidden">Student registrations</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Name</th>
+                  <th scope="col">Student ID</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Department</th>
+                  <th scope="col">Year</th>
+                  <th scope="col">Phone</th>
+                  <th scope="col" class="num">Events</th>
+                  <th scope="col">Registered</th>
+                  <th scope="col"><span class="visually-hidden">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody id="students-body"></tbody>
+            </table>
+          </div>
+          <div id="students-empty" class="empty-state" hidden>
+            <p>No registrations to show.</p>
+          </div>
+          <div class="table-footer">
+            <p id="students-count" class="muted small" role="status" aria-live="polite"></p>
+          </div>
+        </section>
+
+        <!-- Enquiries -->
+        <section id="panel-enquiries" role="tabpanel" aria-labelledby="tab-enquiries" tabindex="0" hidden>
+          <form class="toolbar" role="search" aria-label="Search enquiries">
+            <div class="field">
+              <label for="enquiries-search">Search enquiries</label>
+              <input id="enquiries-search" type="search" placeholder="Name, email, subject or message" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="enquiries-status">Status</label>
+              <select id="enquiries-status">
+                <option value="">All statuses</option>
+                <option value="Open">Open</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+            </div>
+            <button id="enquiries-export" class="btn btn-outline" type="button">Download CSV</button>
+          </form>
+
+          <div class="table-wrap">
+            <table>
+              <caption class="visually-hidden">Enquiries</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Submitted</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Category</th>
+                  <th scope="col">Subject</th>
+                  <th scope="col">Message</th>
+                  <th scope="col">Status</th>
+                  <th scope="col"><span class="visually-hidden">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody id="enquiries-body"></tbody>
+            </table>
+          </div>
+          <div id="enquiries-empty" class="empty-state" hidden>
+            <p>No enquiries to show.</p>
+          </div>
+          <div class="table-footer">
+            <p id="enquiries-count" class="muted small" role="status" aria-live="polite"></p>
+          </div>
+        </section>
+
+        <!-- Events -->
+        <section id="panel-events" role="tabpanel" aria-labelledby="tab-events" tabindex="0" hidden>
+          <div class="card section">
+            <h2>Add an event</h2>
+            <form id="event-form" class="form" novalidate>
+              <p class="form-summary" role="alert" hidden></p>
+              <div class="form-grid">
+                <div class="field span-2">
+                  <label for="ev-title">Title <span class="required-mark" aria-hidden="true">*</span></label>
+                  <input id="ev-title" type="text" maxlength="80" required aria-describedby="ev-title-error">
+                  <span id="ev-title-error" class="field-error" aria-live="polite"></span>
+                </div>
+                <div class="field">
+                  <label for="ev-category">Category <span class="required-mark" aria-hidden="true">*</span></label>
+                  <select id="ev-category" required aria-describedby="ev-category-error">
+                    <option value="">Select a category</option>
+                  </select>
+                  <span id="ev-category-error" class="field-error" aria-live="polite"></span>
+                </div>
+                <div class="field">
+                  <label for="ev-venue">Venue <span class="required-mark" aria-hidden="true">*</span></label>
+                  <input id="ev-venue" type="text" maxlength="80" required aria-describedby="ev-venue-error">
+                  <span id="ev-venue-error" class="field-error" aria-live="polite"></span>
+                </div>
+                <div class="field">
+                  <label for="ev-date">Date <span class="required-mark" aria-hidden="true">*</span></label>
+                  <input id="ev-date" type="date" required aria-describedby="ev-date-error">
+                  <span id="ev-date-error" class="field-error" aria-live="polite"></span>
+                </div>
+                <div class="field">
+                  <label for="ev-time">Start time <span class="required-mark" aria-hidden="true">*</span></label>
+                  <input id="ev-time" type="time" required aria-describedby="ev-time-error">
+                  <span id="ev-time-error" class="field-error" aria-live="polite"></span>
+                </div>
+                <div class="field">
+                  <label for="ev-capacity">Capacity <span class="required-mark" aria-hidden="true">*</span></label>
+                  <input id="ev-capacity" type="number" min="1" max="1000" step="1" inputmode="numeric" required aria-describedby="ev-capacity-error">
+                  <span id="ev-capacity-error" class="field-error" aria-live="polite"></span>
+                </div>
+                <div class="field span-2">
+                  <label for="ev-description">Description <span class="required-mark" aria-hidden="true">*</span></label>
+                  <textarea id="ev-description" maxlength="500" required aria-describedby="ev-description-error"></textarea>
+                  <span id="ev-description-error" class="field-error" aria-live="polite"></span>
+                </div>
+              </div>
+              <div class="btn-row">
+                <button class="btn" type="submit">Add event</button>
+              </div>
+            </form>
+          </div>
+
+          <h2>All events</h2>
+          <div class="table-wrap">
+            <table>
+              <caption class="visually-hidden">Campus events</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Title</th>
+                  <th scope="col">Category</th>
+                  <th scope="col">Date</th>
+                  <th scope="col">Time</th>
+                  <th scope="col">Venue</th>
+                  <th scope="col" class="num">Signed up</th>
+                  <th scope="col"><span class="visually-hidden">Actions</span></th>
+                </tr>
+              </thead>
+              <tbody id="events-body"></tbody>
+            </table>
+          </div>
+          <div id="events-empty" class="empty-state" hidden>
+            <p>There are no events. Add one using the form above.</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year">2026</span> Smart Campus. Demo project, data is stored in your browser.</p>
+      <ul class="footer-links">
+        <li><a href="events.html">Events</a></li>
+        <li><a href="enquiry.html">Contact us</a></li>
+        <li><a href="login.html?role=admin">Admin login</a></li>
+      </ul>
+    </div>
+  </footer>
+</body>
+</html>

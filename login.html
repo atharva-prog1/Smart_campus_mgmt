@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Log in to Smart Campus as a student or administrator.">
+  <title>Login | Smart Campus</title>
+  <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body data-page="login">
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html">
+        <img src="assets/images/logo.svg" alt="" width="36" height="36">
+        <span>Smart Campus</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">
+        <span class="nav-toggle-bars" aria-hidden="true"></span>
+        <span>Menu</span>
+      </button>
+      <nav id="site-nav" class="site-nav" aria-label="Main">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="enquiry.html">Enquiry</a></li>
+          <li data-auth="student"><a href="dashboard.html">Dashboard</a></li>
+          <li data-auth="admin"><a href="admin.html">Admin</a></li>
+          <li data-auth="guest"><a href="register.html">Register</a></li>
+          <li data-auth="guest"><a class="nav-cta" href="login.html">Login</a></li>
+          <li data-auth="user" hidden><button class="nav-button" type="button" data-action="logout">Logout</button></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <div class="page-header">
+      <div class="container">
+        <h1>Log in</h1>
+        <p>Students log in with the email and password they registered with.</p>
+      </div>
+    </div>
+
+    <div class="container narrow">
+      <p id="login-status" class="notice" role="status" hidden></p>
+
+      <div class="card">
+        <form id="login-form" class="form" novalidate>
+          <p class="form-summary" role="alert" hidden></p>
+
+          <fieldset class="field">
+            <legend>Log in as</legend>
+            <div class="role-toggle">
+              <div class="role-option">
+                <input id="role-student" type="radio" name="role" value="student" checked>
+                <label for="role-student">Student</label>
+              </div>
+              <div class="role-option">
+                <input id="role-admin" type="radio" name="role" value="admin">
+                <label for="role-admin">Administrator</label>
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <label for="login-id">Email address</label>
+            <input id="login-id" name="id" type="email" autocomplete="email" required aria-describedby="login-id-error">
+            <span id="login-id-error" class="field-error" aria-live="polite"></span>
+          </div>
+
+          <div class="field">
+            <label for="login-password">Password</label>
+            <input id="login-password" name="password" type="password" autocomplete="current-password" required aria-describedby="login-password-error">
+            <span id="login-password-error" class="field-error" aria-live="polite"></span>
+          </div>
+
+          <p id="login-hint-student" class="hint">No account yet? <a href="register.html">Register as a student</a>.</p>
+          <p id="login-hint-admin" class="notice small" hidden>Demo administrator login: username <strong>admin</strong>, password <strong>admin123</strong>.</p>
+
+          <div class="btn-row">
+            <button class="btn" type="submit">Log in</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="year">2026</span> Smart Campus. Demo project, data is stored in your browser.</p>
+      <ul class="footer-links">
+        <li><a href="events.html">Events</a></li>
+        <li><a href="enquiry.html">Contact us</a></li>
+        <li><a href="login.html?role=admin">Admin login</a></li>
+      </ul>
+    </div>
+  </footer>
+</body>
+</html>
