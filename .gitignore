@@ -1,0 +1,5 @@
+tests/artifacts/
+/tests
+!/tests/
+/tests/*
+!/tests/audit.cjs

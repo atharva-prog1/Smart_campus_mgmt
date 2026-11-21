@@ -38,7 +38,7 @@
   const ENQUIRY_CATEGORIES = ['Admissions', 'Academics', 'Hostel', 'Fees', 'Other'];
 
   const RX = {
-    name: /^[\p{L}][\p{L} .'-]{1,59}$/u,
+    name: /^[\p{L}][\p{L}\p{M} .'-]{1,59}$/u,
     email: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,
     studentId: /^[A-Za-z0-9]{4,12}$/,
     phone: /^\d{10}$/,
@@ -48,7 +48,7 @@
   };
 
   /* ======================================================================
-   * Storage (localStorage with an in-memory fallback)
+   * Storage (cached reads; failed writes never report success)
    * ==================================================================== */
 
   const memoryStore = {};
@@ -67,15 +67,13 @@
 
   function get(key, fallback) {
     let raw = null;
-    if (storageAvailable) {
-      try {
-        raw = window.localStorage.getItem(key);
-      } catch (e) {
-        storageAvailable = false;
-      }
-    }
-    if (!storageAvailable) {
-      return Object.prototype.hasOwnProperty.call(memoryStore, key) ? memoryStore[key] : fallback;
+    try {
+      raw = window.localStorage.getItem(key);
+      memoryStore[key] = raw;
+    } catch (e) {
+      storageAvailable = false;
+      raw = Object.prototype.hasOwnProperty.call(memoryStore, key) ? memoryStore[key] : null;
+      showStorageWarning();
     }
     if (raw === null) return fallback;
     try {
@@ -88,25 +86,31 @@
   function set(key, value) {
     if (storageAvailable) {
       try {
-        window.localStorage.setItem(key, JSON.stringify(value));
-        return;
+        const raw = JSON.stringify(value);
+        window.localStorage.setItem(key, raw);
+        memoryStore[key] = raw;
+        return true;
       } catch (e) {
         storageAvailable = false;
       }
     }
-    memoryStore[key] = value;
+    showStorageWarning();
+    toast('This change could not be saved. Enable browser storage and reload the page.', 'error');
+    return false;
   }
 
   function remove(key) {
     if (storageAvailable) {
       try {
         window.localStorage.removeItem(key);
-        return;
+        delete memoryStore[key];
+        return true;
       } catch (e) {
         storageAvailable = false;
       }
     }
-    delete memoryStore[key];
+    showStorageWarning();
+    return false;
   }
 
   function asArray(value) {
@@ -114,18 +118,36 @@
   }
 
   function getStudents() {
-    return asArray(get(KEYS.students, [])).map(function (s) {
-      s.eventIds = asArray(s.eventIds);
+    return records(KEYS.students, ['id', 'name', 'email', 'password', 'studentId']).map(function (s) {
+      s.eventIds = Array.from(new Set(asArray(s.eventIds).filter(function (id) { return typeof id === 'string'; })));
       return s;
     });
   }
-  function saveStudents(list) { set(KEYS.students, list); }
+  function saveStudents(list) { return set(KEYS.students, list); }
 
-  function getEvents() { return asArray(get(KEYS.events, [])); }
-  function saveEvents(list) { set(KEYS.events, list); }
+  function records(key, fields) {
+    return asArray(get(key, [])).filter(function (record) {
+      return record && typeof record === 'object' && fields.every(function (field) {
+        return typeof record[field] === 'string' && record[field].trim().length > 0;
+      });
+    });
+  }
 
-  function getEnquiries() { return asArray(get(KEYS.enquiries, [])); }
-  function saveEnquiries(list) { set(KEYS.enquiries, list); }
+  function getEvents() {
+    return records(KEYS.events, ['id', 'title', 'category', 'date', 'time', 'venue', 'description']).filter(function (event) {
+      return isValidISODate(event.date) && RX.time.test(event.time) &&
+        Number.isInteger(Number(event.capacity)) && Number(event.capacity) > 0;
+    });
+  }
+  function saveEvents(list) { return set(KEYS.events, list); }
+
+  function getEnquiries() {
+    return records(KEYS.enquiries, ['id', 'name', 'email', 'subject', 'category', 'message']).map(function (enquiry) {
+      enquiry.status = enquiry.status === 'Resolved' ? 'Resolved' : 'Open';
+      return enquiry;
+    });
+  }
+  function saveEnquiries(list) { return set(KEYS.enquiries, list); }
 
   /* ======================================================================
    * Small utilities
@@ -244,7 +266,7 @@
    * ==================================================================== */
 
   function seedEvents() {
-    if (get(KEYS.events, null) !== null) return;
+    if (Array.isArray(get(KEYS.events, null))) return;
     saveEvents([
       {
         id: 'evt-1', title: 'Freshers\u2019 Orientation', category: 'Academic',
@@ -356,18 +378,20 @@
     const normalized = email.trim().toLowerCase();
     const student = getStudents().find(function (s) { return s.email === normalized; });
     if (!student || student.password !== password) return null;
-    set(KEYS.session, { role: 'student', studentId: student.id });
+    if (!set(KEYS.session, { role: 'student', studentId: student.id })) return null;
     return student;
   }
 
   function loginAdmin(username, password) {
     if (username.trim() !== ADMIN.username || password !== ADMIN.password) return false;
-    set(KEYS.session, { role: 'admin' });
-    return true;
+    return set(KEYS.session, { role: 'admin' });
   }
 
   function logout() {
-    remove(KEYS.session);
+    if (!remove(KEYS.session)) {
+      toast('Logout could not be saved. Enable browser storage and reload the page.', 'error');
+      return;
+    }
     setFlash('You have been logged out.');
     window.location.href = 'index.html';
   }
@@ -379,6 +403,7 @@
       document.body.classList.add('auth-ok');
       return user;
     }
+    document.body.classList.remove('auth-ok');
     const target = role === 'admin' ? 'admin.html' : 'dashboard.html';
     setFlash(role === 'admin'
       ? 'Please log in as the administrator to open the admin panel.'
@@ -398,7 +423,8 @@
   }
 
   function isPast(event) {
-    return String(event.date) < todayISO();
+    const now = new Date();
+    return event.date + 'T' + event.time <= toISODate(now) + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
   }
 
   function seatsTaken(eventId, students) {
@@ -425,7 +451,7 @@
     if (join) {
       if (student.eventIds.indexOf(eventId) !== -1) return true;
       if (isPast(event)) {
-        toast('This event has already taken place.', 'error');
+        toast('Sign-up is closed because this event has already started.', 'error');
         return false;
       }
       if (seatsTaken(eventId, students) >= Number(event.capacity)) {
@@ -433,11 +459,11 @@
         return false;
       }
       student.eventIds.push(eventId);
-      saveStudents(students);
+      if (!saveStudents(students)) return false;
       toast('You are signed up for "' + event.title + '".');
     } else {
       student.eventIds = student.eventIds.filter(function (id) { return id !== eventId; });
-      saveStudents(students);
+      if (!saveStudents(students)) return false;
       toast('Your sign-up for "' + event.title + '" was cancelled.');
     }
     return true;
@@ -458,9 +484,7 @@
     let action;
     if (options.compact) {
       action = el('a', { className: 'btn btn-small btn-outline', href: 'events.html', text: 'View on Events page' });
-    } else if (!user) {
-      action = el('a', { className: 'btn btn-small', href: 'login.html?next=events.html', text: 'Log in to sign up' });
-    } else if (user.role === 'admin') {
+    } else if (user && user.role === 'admin') {
       action = el('a', { className: 'btn btn-small btn-outline', href: 'admin.html#events', text: 'Manage in admin panel' });
     } else if (signedUp) {
       action = el('button', {
@@ -471,6 +495,8 @@
       action = el('button', { type: 'button', className: 'btn btn-small', disabled: true, text: 'Event ended' });
     } else if (left === 0) {
       action = el('button', { type: 'button', className: 'btn btn-small', disabled: true, text: 'Event full' });
+    } else if (!user) {
+      action = el('a', { className: 'btn btn-small', href: 'login.html?next=events.html', text: 'Log in to sign up' });
     } else {
       action = el('button', {
         type: 'button', className: 'btn btn-small', text: 'Sign up',
@@ -508,6 +534,7 @@
     email: function (v) {
       const x = v.trim();
       if (!x) return 'Email address is required.';
+      if (x.length > 100) return 'Email address must be at most 100 characters.';
       return RX.email.test(x) ? '' : 'Enter a valid email address, such as name@example.com.';
     },
     password: function (v) {
@@ -591,7 +618,7 @@
   function csvCell(value) {
     let text = value === null || value === undefined ? '' : String(value);
     // Stop spreadsheets from treating the cell as a formula.
-    if (/^[=+\-@\t\r]/.test(text)) text = '\'' + text;
+    if (/^\s*[=+\-@]/.test(text) || /^[\t\r\n]/.test(text)) text = '\'' + text;
     return '"' + text.replace(/"/g, '""') + '"';
   }
 
@@ -619,7 +646,7 @@
    * Shared UI: navigation, footer, storage warning
    * ==================================================================== */
 
-  function initNav() {
+  function updateNav() {
     const user = currentUser();
 
     $all('[data-auth]').forEach(function (node) {
@@ -635,7 +662,10 @@
     $all('.site-nav a').forEach(function (link) {
       if (link.getAttribute('href') === here) link.setAttribute('aria-current', 'page');
     });
+  }
 
+  function initNav() {
+    updateNav();
     $all('[data-action="logout"]').forEach(function (btn) {
       btn.addEventListener('click', logout);
     });
@@ -669,10 +699,11 @@
 
   function showStorageWarning() {
     const main = $('#main');
-    if (!main) return;
-    main.prepend(el('div', { className: 'notice notice-error container', role: 'alert' }, [
-      'Your browser is blocking local storage, so data will be lost when you leave this page. ',
-      'Run the site from a local web server instead (see README.md).'
+    if (!main || $('#storage-warning')) return;
+    main.prepend(el('div', { id: 'storage-warning', className: 'notice notice-error container', role: 'alert' }, [
+      'Browser storage is unavailable or full. Changes cannot be saved. ',
+      'Allow storage for this site or run it from a local web server (see README.md), then reload. ',
+      'Back up saved data before clearing browser storage.'
     ]));
   }
 
@@ -688,6 +719,7 @@
     const list = $('#upcoming-events');
     const empty = $('#upcoming-empty');
     if (list) {
+      clear(list);
       upcoming.slice(0, 3).forEach(function (event) {
         list.append(eventCard(event, user, students, { compact: true }));
       });
@@ -772,7 +804,7 @@
       };
       const students = getStudents();
       students.push(student);
-      saveStudents(students);
+      if (!saveStudents(students)) return;
 
       setFlash('Registration successful. Log in with your email and password.', 'success', { email: student.email });
       window.location.href = 'login.html';
@@ -845,7 +877,7 @@
       let name;
       if (role === 'admin') {
         if (!loginAdmin(idInput.value, pwInput.value)) {
-          setSummary(form, 'Incorrect admin username or password.');
+          setSummary(form, storageAvailable ? 'Incorrect admin username or password.' : 'Login could not be saved. Enable browser storage and reload.');
           pwInput.value = '';
           pwInput.focus();
           return;
@@ -854,7 +886,7 @@
       } else {
         const student = loginStudent(idInput.value, pwInput.value);
         if (!student) {
-          setSummary(form, 'Incorrect email or password.');
+          setSummary(form, storageAvailable ? 'Incorrect email or password.' : 'Login could not be saved. Enable browser storage and reload.');
           pwInput.value = '';
           pwInput.focus();
           return;
@@ -920,6 +952,7 @@
     });
 
     render();
+    refreshPage = render;
   }
 
   /* ======================================================================
@@ -965,6 +998,7 @@
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      success.hidden = true;
       if (!validate(form, rules)) return;
 
       const enquiry = {
@@ -979,9 +1013,10 @@
       };
       const enquiries = getEnquiries();
       enquiries.push(enquiry);
-      saveEnquiries(enquiries);
+      if (!saveEnquiries(enquiries)) return;
 
       form.reset();
+      clearErrors(form, rules);
       prefill();
       updateCounter();
       $('#enquiry-ref').textContent = enquiry.id.toUpperCase();
@@ -1081,6 +1116,7 @@
     });
 
     render();
+    refreshPage = render;
   }
 
   /* ======================================================================
@@ -1099,8 +1135,17 @@
       });
       if (focus) tab.focus();
     };
+    const selectHash = function () {
+      const hash = window.location.hash.slice(1);
+      const fromHash = tabs.find(function (t) { return t.getAttribute('aria-controls') === 'panel-' + hash; });
+      select(fromHash || tabs[0]);
+    };
+    const activate = function (tab, focus) {
+      select(tab, focus);
+      window.history.replaceState(null, '', '#' + tab.getAttribute('aria-controls').replace('panel-', ''));
+    };
     tabs.forEach(function (tab, i) {
-      tab.addEventListener('click', function () { select(tab); });
+      tab.addEventListener('click', function () { activate(tab); });
       tab.addEventListener('keydown', function (e) {
         let j = null;
         if (e.key === 'ArrowRight') j = (i + 1) % tabs.length;
@@ -1109,13 +1154,12 @@
         else if (e.key === 'End') j = tabs.length - 1;
         if (j !== null) {
           e.preventDefault();
-          select(tabs[j], true);
+          activate(tabs[j], true);
         }
       });
     });
-    const hash = window.location.hash.slice(1);
-    const fromHash = tabs.find(function (t) { return t.getAttribute('aria-controls') === 'panel-' + hash; });
-    select(fromHash || tabs[0]);
+    window.addEventListener('hashchange', selectHash);
+    selectHash();
   }
 
   function td(text, className) {
@@ -1226,6 +1270,7 @@
     };
 
     const renderAll = function () {
+      if (!requireRole('admin')) return;
       renderStats();
       renderStudents();
       renderEnquiries();
@@ -1247,7 +1292,7 @@
       const student = students.find(function (s) { return s.id === btn.dataset.id; });
       if (!student) return;
       if (!window.confirm('Delete ' + student.name + ' (' + student.studentId + ')?\n\nTheir event sign-ups will also be removed. This cannot be undone.')) return;
-      saveStudents(students.filter(function (s) { return s.id !== student.id; }));
+      if (!saveStudents(students.filter(function (s) { return s.id !== student.id; }))) return;
       renderAll();
       studentSearch.focus();
       toast('Deleted registration for ' + student.name + '.');
@@ -1261,11 +1306,12 @@
       const enquiry = enquiries.find(function (q) { return q.id === btn.dataset.id; });
       if (!enquiry) return;
       enquiry.status = enquiry.status === 'Resolved' ? 'Open' : 'Resolved';
-      saveEnquiries(enquiries);
+      if (!saveEnquiries(enquiries)) return;
       renderStats();
       renderEnquiries();
       const again = $('#enquiries-body').querySelector('button[data-id="' + CSS.escape(enquiry.id) + '"]');
       if (again) again.focus();
+      else enquiryStatus.focus();
       toast('Enquiry marked ' + enquiry.status + '.');
     });
 
@@ -1279,12 +1325,13 @@
       const students = getStudents();
       const affected = seatsTaken(event.id, students);
       if (!window.confirm('Delete "' + event.title + '"?\n\n' + plural(affected, 'student sign-up', 'student sign-ups') + ' will be removed. This cannot be undone.')) return;
-      saveEvents(events.filter(function (x) { return x.id !== event.id; }));
+      if (!saveEvents(events.filter(function (x) { return x.id !== event.id; }))) return;
       students.forEach(function (s) {
         s.eventIds = s.eventIds.filter(function (id) { return id !== event.id; });
       });
-      saveStudents(students);
+      if (!saveStudents(students)) return;
       renderAll();
+      $('#ev-title').focus();
       toast('Deleted event "' + event.title + '".');
     });
 
@@ -1300,7 +1347,9 @@
       }],
       ['ev-time', function (v) {
         if (!v) return 'Time is required.';
-        return RX.time.test(v) ? '' : 'Enter a valid time, such as 14:30.';
+        if (!RX.time.test(v)) return 'Enter a valid time, such as 14:30.';
+        return isValidISODate($('#ev-date').value) && isPast({ date: $('#ev-date').value, time: v })
+          ? 'Start time must be in the future.' : '';
       }],
       ['ev-venue', check.length('Venue', 2, 80)],
       ['ev-capacity', function (v) {
@@ -1328,7 +1377,7 @@
       };
       const events = getEvents();
       events.push(event);
-      saveEvents(events);
+      if (!saveEvents(events)) return;
       eventForm.reset();
       clearErrors(eventForm, eventRules);
       renderAll();
@@ -1380,6 +1429,7 @@
     });
 
     renderAll();
+    refreshPage = renderAll;
   }
 
   /* ======================================================================
@@ -1395,6 +1445,7 @@
     dashboard: initDashboard,
     admin: initAdmin
   };
+  let refreshPage = null;
 
   function boot() {
     storageAvailable = checkStorage();
@@ -1411,6 +1462,38 @@
 
     const init = PAGE_INITS[document.body.dataset.page];
     if (init) init(flash);
+    if (document.body.dataset.page === 'home') refreshPage = initHome;
+
+    const identity = function () {
+      const user = currentUser();
+      return user ? (user.role === 'student' ? user.student.id : 'admin') : 'guest';
+    };
+    const initialIdentity = identity();
+    window.addEventListener('storage', function (event) {
+      if (event.key !== null && Object.values(KEYS).indexOf(event.key) === -1) return;
+      if (identity() !== initialIdentity) {
+        window.location.reload();
+        return;
+      }
+      updateNav();
+      if (refreshPage) refreshPage();
+    });
+    window.addEventListener('pageshow', function (event) {
+      if (event.persisted) {
+        if (identity() !== initialIdentity) window.location.reload();
+        else if (refreshPage) refreshPage();
+      }
+    });
+    if (document.body.hasAttribute('data-protected')) {
+      ['click', 'submit'].forEach(function (type) {
+        $('.protected-content').addEventListener(type, function (event) {
+          if (!requireRole(document.body.dataset.page === 'admin' ? 'admin' : 'student')) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          }
+        }, true);
+      });
+    }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

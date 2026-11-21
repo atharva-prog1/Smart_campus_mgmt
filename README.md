@@ -2,14 +2,14 @@
 
 A responsive, front-end-only campus portal built with plain HTML, CSS and JavaScript. Students can register, log in, browse and sign up for campus events, send enquiries and view a personal dashboard. An administrator can review and manage student registrations, enquiries and events, and download the registrations and enquiries tables as CSV files.
 
-No server, build step or internet connection is needed. All data is stored in the browser's `localStorage`.
+No build step or internet connection is needed. All data is stored in the browser's `localStorage`. A local web server is recommended for consistent storage across browsers; opening `index.html` directly also works in browsers that permit storage for local files.
 
 ## Features
 
 ### Students
-- **Registration** with full name, email, student ID, department, year of study, phone and password. Every field is validated, with inline error messages. Duplicate emails and student IDs are rejected.
+- **Registration** with full name (including names in Indian scripts), email, student ID, department, year of study, phone and password. Every field is validated, with inline error messages. Duplicate emails and student IDs are rejected.
 - **Login and logout** with the registered email and password.
-- **Campus events**: search by title or venue, filter by category (Academic, Cultural, Sports, Workshop), and sign up or cancel. Each event shows the seats left, and full or past events can't be joined.
+- **Campus events**: search by title or venue, filter by category (Academic, Cultural, Sports, Workshop), and sign up or cancel. Each event shows the seats left. Sign-up closes at the event's start date and time, and full events can't be joined.
 - **Enquiries**: anyone can send one. For logged-in students, name and email are filled in from their account. Each enquiry gets a reference number.
 - **Dashboard**: profile details, signed-up events (with Cancel), and enquiries with their Open or Resolved status.
 
@@ -17,7 +17,7 @@ No server, build step or internet connection is needed. All data is stored in th
 - Summary counts: registered students, open enquiries, events and event sign-ups.
 - **Registrations**: searchable table, delete a student (with confirmation), download as CSV.
 - **Enquiries**: search, filter by status, mark Resolved or reopen, download as CSV.
-- **Events**: add an event (past dates rejected), delete an event (with confirmation).
+- **Events**: add an event (past dates and start times rejected), delete an event (with confirmation). The selected admin tab is preserved in the page URL.
 - CSV downloads include only the rows that match the current search and filter. Passwords are never exported.
 
 ### General
@@ -25,11 +25,14 @@ No server, build step or internet connection is needed. All data is stored in th
 - Mobile-first responsive layout, with a menu button below 768px wide.
 - Accessibility: a label on every form field, a skip link, visible keyboard focus, error messages announced to screen readers, and keyboard-operable tabs on the admin page.
 - Works offline. There are no CDNs or external fonts.
+- Event lists, dashboard counts and admin tables update when data changes in another tab. Account switches, deleted accounts and logout update access to protected pages.
+- If browser storage is blocked or full, a visible warning explains the problem. Unsaved submissions stay in their forms and never show a success message.
+- Invalid saved records are ignored so malformed browser data does not crash the pages.
 
 ## Technologies used
 - **HTML5**: semantic page structure and forms.
 - **CSS3**: custom properties, Flexbox, Grid and media queries.
-- **JavaScript (ES2017+, no libraries)**: validation, rendering, session handling and CSV export.
+- **JavaScript (ES2018+, no libraries)**: validation, rendering, session handling and CSV export.
 - **Web Storage API** (`localStorage` and `sessionStorage`) for data.
 - **SVG** for the logo, favicon and home page illustration.
 
@@ -52,6 +55,9 @@ Smart_campus_mgmt/
 │   │   └── hero.svg
 │   └── icons/
 │       └── favicon.svg
+├── tests/
+│   └── audit.cjs     Optional browser audit using Node.js and Edge/Chrome
+├── .gitignore        Excludes generated test artifacts
 └── README.md
 ```
 
@@ -64,9 +70,10 @@ You need a current version of Chrome, Edge or Firefox. Nothing else needs to be 
 ### Option 1: open the file directly
 1. Download or clone the project folder.
 2. Double-click `index.html`, or drag it into a browser window.
+3. If you see a browser storage warning or data does not persist between pages, use option 2.
 
-### Option 2: run a local web server (optional)
-Use this if your browser blocks storage for files opened from disk, or if you want to open the site from another machine.
+### Option 2: run a local web server (recommended)
+This gives all pages a consistent browser storage origin. It also lets you open the site from another machine.
 
 With Python 3:
 ```
@@ -93,16 +100,43 @@ To start again with only the sample events:
 1. Open the browser developer tools (F12).
 2. Go to **Application** (Chrome or Edge) or **Storage** (Firefox), then **Local Storage**.
 3. Delete the keys `scms_students`, `scms_events`, `scms_enquiries` and `scms_session`, or clear all local storage for the site.
-4. Reload the page. The sample events are added again.
+4. Under Session Storage, delete `scms_flash` if present.
+5. Reload the page. The 8 sample events are added again, with dates relative to the day you reset the events.
+
+Resetting data permanently deletes registrations, enquiries and sign-ups. Download any needed CSV files first.
 
 ## Limitations
 - **Demo security only.** Login checks run in the browser, and passwords are stored as plain text in `localStorage`. Anyone with access to the browser can read or change the data. Don't use a real password.
 - **Data stays in one browser.** The admin only sees registrations and enquiries made in the same browser, on the same address. There is no shared database.
 - Clearing browser data deletes everything.
+- JavaScript and writable browser storage are required for registration, login, enquiries and event management.
+- Event start times use the local timezone of the browser. This demo does not coordinate concurrent writes from multiple tabs or provide server-side access control.
+
+## Automated browser audit
+
+Verified on 21 November 2026 in Microsoft Edge: **18 audit groups passed with no browser console or JavaScript errors**, including student and administrator workflows, four viewport widths and direct-file operation.
+
+Running the application itself does **not** need Node.js. To run the optional audit, install Node.js 22 or newer and have Microsoft Edge or Google Chrome installed:
+
+```
+node tests/audit.cjs
+```
+
+The audit starts a local server and a headless browser with a separate temporary profile. It exercises the student and administrator workflows, validates local links and assets, checks layouts at 320px, 360px, 768px and 1280px, tests failed storage and multiple tabs, and checks direct-file operation. It writes a JSON report and screenshots to `tests/artifacts/`, which is excluded from Git. No npm packages or browser downloads are needed.
+
+If the browser is installed in a different location, set `SCMS_BROWSER` to the full path of its executable before running the audit. Direct-file storage behaviour can differ by browser; the recommended local-server workflow remains the most portable way to run the application.
+
+## Submission checklist
+
+- Include all seven HTML pages, `style.css`, `script.js`, `README.md` and the complete `assets` folder.
+- Keep the folder structure intact so relative links and image paths work.
+- No `node_modules`, build output, database setup or credentials file is required.
+- Open Home and complete a registration, student login, enquiry and administrator review before demonstrating the project.
+- Use the administrator demo credentials `admin` / `admin123`; create the student account through Register.
 
 ## Manual test checklist
 
-Before you start, reset the data as described above.
+This checklist is reusable for future manual reviews; the completed automated review is recorded above. Before you start, reset the data as described above.
 
 ### Layout and navigation
 - [ ] Open `index.html` directly from disk. The page loads with no errors in the developer tools console.
@@ -139,6 +173,7 @@ Before you start, reset the data as described above.
 - [ ] **Cancel** on the Dashboard or **Cancel sign-up** on the Events page removes the sign-up from both pages.
 - [ ] An event that is full shows a disabled **Event full** button. To test this, the admin adds an event with capacity 1 and one student signs up, then a second student checks the event.
 - [ ] The Dashboard shows the student's profile and the right counts.
+- [ ] An event with today's date and a start time earlier than now cannot be added or joined. Full and started events also show disabled buttons to visitors.
 
 ### Enquiries
 - [ ] Submitting the empty form shows errors. A message under 20 characters is rejected. The counter updates as you type.
@@ -153,6 +188,8 @@ Before you start, reset the data as described above.
 - [ ] **Mark resolved** changes the enquiry badge to Resolved and lowers the open count. The student's Dashboard now shows Resolved. **Reopen** changes it back.
 - [ ] The status filter shows only Open or only Resolved enquiries.
 - [ ] The Arrow keys move between the Registrations, Enquiries and Events tabs.
+- [ ] Switching tabs updates the URL fragment; reloading keeps the selected tab.
+- [ ] Changing an enquiry's status in another tab updates the open Dashboard without a manual reload. Logging out in another tab redirects protected pages to Login.
 
 ### Admin: events
 - [ ] Submitting the empty Add event form shows errors. A past date is rejected.
@@ -165,3 +202,8 @@ Before you start, reset the data as described above.
 - [ ] The registrations file has no password column.
 - [ ] With a search or status filter active, the file contains only the matching rows.
 - [ ] A value that starts with `=` (for example an enquiry subject `=1+1`) shows as text in the spreadsheet, not as a calculated result.
+
+### Storage failures
+- [ ] With site storage blocked, a visible warning appears and submissions do not claim success.
+- [ ] If storage becomes full while entering a form, submitting keeps the entered fields and displays a storage error.
+- [ ] Malformed entries in saved arrays do not prevent the remaining valid events, registrations or enquiries from loading.
